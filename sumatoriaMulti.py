@@ -5,8 +5,7 @@ import multiprocessing
 
 def sumar_parte(arreglo, inicio, fin, resultados, indice_proceso):
     """
-    Suma los elementos del arreglo desde inicio hasta fin - 1
-    y guarda el resultado parcial en la cola.
+    Suma los elementos desde inicio hasta fin - 1.
     """
     suma_parcial = 0
 
@@ -18,11 +17,9 @@ def sumar_parte(arreglo, inicio, fin, resultados, indice_proceso):
 
 if __name__ == "__main__":
 
-    # Entrada de datos
     D = int(input("Ingrese la longitud del arreglo (D): "))
     n = int(input("Ingrese la cantidad de procesos (n): "))
 
-    # Validaciones
     if D <= 0:
         print("Error: la longitud del arreglo debe ser mayor que 0.")
 
@@ -30,32 +27,31 @@ if __name__ == "__main__":
         print("Error: la cantidad de procesos debe ser mayor que 0.")
 
     elif n > D:
-        print("Error: la cantidad de procesos no puede ser mayor que la longitud del arreglo.")
+        print("Error: la cantidad de procesos no puede ser mayor que D.")
 
     elif D % n != 0:
         print(f"Error: {D} no es divisible entre {n}.")
-        print("Seleccione una cantidad de procesos que distribuya los datos equitativamente.")
 
     else:
+        # Generación del arreglo fuera de la medición
+        inicio_generacion = time.perf_counter()
 
-        # Crear un arreglo de D números aleatorios entre 1 y 100
-        arreglo = [random.randint(1, 100) for _ in range(D)]
+        arreglo = [
+            random.randint(1, 100)
+            for _ in range(D)
+        ]
 
-        # Datos que procesará cada proceso: D / n
+        fin_generacion = time.perf_counter()
+
         datos_por_proceso = D // n
-
-        # Cola para almacenar las sumas parciales
         resultados = multiprocessing.Queue()
-
-        # Lista de objetos proceso
         procesos = []
 
-        # Iniciar medición del tiempo
-        # inicio_tiempo = time.perf_counter()
+        # El cronómetro empieza antes de crear los procesos
+        inicio_tiempo = time.perf_counter()
 
         # Crear e iniciar los procesos
         for i in range(n):
-
             inicio = i * datos_por_proceso
             fin = inicio + datos_por_proceso
 
@@ -73,13 +69,11 @@ if __name__ == "__main__":
             procesos.append(proceso)
             proceso.start()
 
-        inicio_tiempo = time.perf_counter()
-        
-        # Esperar a que todos los procesos terminen
+        # Esperar a que terminen todos
         for proceso in procesos:
             proceso.join()
 
-        # Recuperar los resultados de los procesos
+        # Recuperar resultados
         resultados_parciales = [0] * n
 
         for _ in range(n):
@@ -89,16 +83,17 @@ if __name__ == "__main__":
         # Sumar los resultados parciales
         suma_total = sum(resultados_parciales)
 
-        # Finalizar medición del tiempo
+        # Finalizar el cronómetro
         fin_tiempo = time.perf_counter()
 
+        tiempo_generacion = fin_generacion - inicio_generacion
         tiempo_ejecucion = fin_tiempo - inicio_tiempo
 
-        # Resultados
-        print("\n--- RESULTADOS: N PROCESOS ---")
-        print("Longitud del arreglo (D):", D)
-        print("Cantidad de procesos (n):", n)
-        print("Datos por proceso (D / n):", datos_por_proceso)
+        print("\n--- RESULTADOS MULTIPROCESO ---")
+        print("Longitud del arreglo:", D)
+        print("Cantidad de procesos:", n)
+        print("Datos por proceso:", datos_por_proceso)
         print("Suma parcial de cada proceso:", resultados_parciales)
         print("Suma total:", suma_total)
-        print(f"Tiempo de ejecución: {tiempo_ejecucion:.10f} segundos")
+        print(f"Tiempo de generación: {tiempo_generacion:.6f} segundos")
+        print(f"Tiempo de ejecución multiproceso: {tiempo_ejecucion:.6f} segundos")
